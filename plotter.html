@@ -1,0 +1,123 @@
+<html>
+
+<head>
+<meta charset="utf-8">
+</head>
+
+<body>
+<img id="dl" href-lang="image/svg+html">Download</img>
+</body>
+
+<script type="text/javascript">
+
+var drawGear = function() {
+  var path = '';
+  var π = Math.PI;
+  
+  // @option Number z -- Tooth count
+  var z = options.z;
+  
+  // @option Number m -- Module (mm)
+  var m = options.m || options.p/π;
+  
+  // @option Number p -- Circular pitch (mm)
+  var p = options.m*π || options.p;
+  
+  // @option Number Ψ -- Pressure angle (rad)
+  var Ψ = options.Ψ;
+  
+  // @option Number B -- Backlash (mm)
+  var B = options.B;
+  
+  // @option Number dd -- Drill diameter (mm)
+  var rd = options.dd/2;
+  
+  with(Math) {
+    var sec = x => 1/cos(x);
+    var asec = x => acos(1/x);
+    var coord = (r, θ) => (r*cos(θ)).toFixed(6) + ' ' + (r*sin(θ)).toFixed(6);
+    var lineTo = (r, θ) => path += 'L' + coord(r, θ) + ' ';
+    
+    var rp = z*m/2; // Pitch radius
+    var rb = rp*cos(Ψ); // Base radius
+    var ha = 2*rp/z; // Addendum
+    var ra = rp + ha; // Addendum radius
+    
+    var tmax = asec((ra + rd)/rb); // Max for involute parameter t
+    var θi = tan(tmax) - tmax; // Involute arc
+    var θr = π/z - B/(m*z) + 2*(tan(Ψ) - Ψ); // Root arc
+    var θd = rd/(2*π*rb); // Drill arc
+    
+    path += 'M' + coord(rb*sec(θd), tan(θd) - 2*θd) + ' ';
+    
+    for(var i = 0; i < z;) {
+      // Involute going out
+      for(var j = 0, t = θd; j < 12; ++j, t += (tmax - θd)/11) {
+        lineTo(rb*sec(t), tan(t) - t + 2*π*i/z);
+      }
+      
+      // Top land
+      path += 'A ' + ra.toFixed(6) + ' ' + ra.toFixed(6) + ' ' + 0 + ' ' + 0 + ' ' + 1 + ' ' + coord(ra + rd, θr - θi + θd + 2*π*i/z) + ' ';
+      
+      // Involute coming in
+      for(var t = tmax; t >= θd; t -= (tmax - θd)/11) {
+        lineTo(rb*sec(t), θr + 2*θd - (tan(t) - t) + 2*π*i/z);
+      }
+      
+      ++i;
+      
+      // Bottom land
+      path += 'A ' + rb.toFixed(6) + ' ' + rb.toFixed(6) + ' ' + 0 + ' ' + 0 + ' ' + 1 + ' ' + coord(rb*sec(θd), tan(θd) - 2*θd + 2*π*i/z) + ' ';
+    }
+    
+    path += 'Z';
+  }
+  
+  return '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n\
+\n\
+<svg\n\
+  xmlns="http://www.w3.org/2000/svg"\n\
+  xmlns:xlink="http://www.w3.org/1999/xlink"\n\
+  width="200mm"\n\
+  height="200mm"\n\
+  viewBox="-100 -100 200 200"\n\
+  version="1.1">\n\
+  \n\
+  <style type="text/css">\n\
+    path, circle {\n\
+      fill: none;\n\
+      stroke:#000;\n\
+      stroke-width:0.1px;\n\
+    }\n\
+  </style>\n\
+  \n\
+  <g>\n\
+    <path\n\
+      d="M 1,1\n\
+         L -1,1\n\
+         L -1,-1\n\
+         L 1,-1\n\
+         Z" />\n\
+  </g>\n\
+  <g>\n\
+    <circle cx="0" cy="0" r="' + rp + '" />\n\
+  </g>\n\
+  <g>\n\
+    <path\n\
+      d="' + path + '" />\n\
+  </g>\n\
+</svg>\n';
+}
+
+var options = {
+  z: 24,
+  m: 4,
+  Ψ: 20/180*Math.PI,
+  B: 0,
+  dd: 0
+}
+
+document.querySelector('#dl').src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(drawGear(options));
+
+</script>
+</html>
