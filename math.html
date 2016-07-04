@@ -1,0 +1,86 @@
+<html>
+<head>
+<meta charset="utf-8">
+<!--
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [["$","$"],["\\(","\\)"]]}
+});
+</script>
+<script type="text/javascript" src="./MathJax.js?config=TeX-AMS_HTML-full"></script>
+-->
+<!--
+<script type="text/javascript" src="./MathJax.js?config=TeX-AMS_HTML-full"></script>
+-->
+<script type="text/javascript" src="./MathJax.js?config=TeX-MML-AM_SVG"></script>
+</head>
+
+<body>
+
+<table>
+<tr><th>Symbol</th><th>Name</th><th>Constraints</th></tr>
+<tr><td>Inputs</td></tr>
+<tr><td>\( z \)</td><td>Tooth count</td><td>\( z > 0, z \in \mathbb{N} \)</></td></tr>
+<tr><td>\( m \)</td><td>Module</td><td>\( m > 0 \)</></td></tr>
+<tr><td>\( p \)</td><td>Circular pitch</td><td>\( p = πm \)</></td></tr>
+<tr><td>\( ψ \)</td><td>Pressure angle</td><td>\( 0 \le ψ < \frac{π}{2} \)</></td></tr>
+<tr><td>\( B \)</td><td>Backlash</td><td>\( 0 \le B \le \frac{p}{2} \)</></td></tr>
+<tr><td>\( d_d \)</td><td>Drill diameter</td><td>\( d_d > 0 \)</></td></tr>
+<tr><td>Intermediates</td></tr>
+<tr><td>\( r_p \)</td><td>Pitch radius</td><td>\( r_p = \frac{zm}{2} \)</></td></tr>
+<tr><td>\( r_b \)</td><td>Base radius</td><td>\( r_b = r_pcos(ψ) \)</></td></tr>
+<tr><td>\( h_a \)</td><td>Addendum</td><td>\( h_a = m \)</></td></tr>
+<tr><td>\( r_a \)</td><td>Addendum radius</td><td>\( r_a = r_p + h_a \)</></td></tr>
+<tr><td>\( h_d \)</td><td>Dedendum</td><td>\( h_d \ge h_a, h_d \ge r_p - r_b \)</></td></tr>
+<tr><td>\( r_d \)</td><td>Drill radius</td><td>\( r_d = \frac{d_d}{2} \)</></td></tr>
+<tr><td>\( θ_d \)</td><td>Drill arc</td><td>\( θ_d = \frac{r_d}{r_b} \)</></td></tr>
+<tr><td>\( θ_r \)</td><td>Root arc</td><td>\( θ_r = \frac{π}{z} - \frac{B}{zm} + 2(tan(ψ) - ψ) \)</></td></tr>
+<tr><td>\(  \)</td><td></td><td>\(  \)</></td></tr>
+<tr><td>\( I_{max} \)</td><td>Involuter parameter limit</td><td>\( I_{max} = \sqrt{(\frac{r_a}{r_b})^2 - 1} \)</></td></tr>
+<tr><td>\( I_{d-max} \)</td><td>" adjusted for drill</td><td>\( I_{d-max} = \sqrt{(\frac{r_a + r_d}{r_b})^2 - 1} \)</></td></tr>
+<tr><td>\( θ_i \)</td><td>Involute arc</td><td>\( θ_i = I_{max} - arctan(I_{max}) \)</></td></tr>
+<tr><td>\( θ_{d-i} \)</td><td>" adjusted for drill</td><td>\( θ_i = I_{d-max} - arctan(I_{d-max}) \)</></td></tr>
+</table>
+
+<table>
+<tr><th>Point</th><th>\( r \)</th><th>\( θ \)</></th></tr>
+<tr><td>A</td><td>\( r_b \)</></td><td>\( 0 \)</td></tr>
+<tr><td>B</td><td>\( r_a \)</td><td>\( θ_i \)</></td></tr>
+<tr><td>C</td><td>\( r_a \)</td><td>\( θ_r - θ_i \)</></td></tr>
+<tr><td>D</td><td>\( r_b \)</></td><td>\( θ_r \)</td></tr>
+<tr><td>E</td><td>\( r_p - h_d \)</></td><td>\( θ_r \)</td></tr>
+<tr><td>F</td><td>\( r_p - h_d \)</></td><td>\( \frac{2π}{z} \)</td></tr>
+<tr><td>G</td><td>\( r_b \)</></td><td>\( \frac{2π}{z} \)</td></tr>
+
+<tr><td>A'</td><td>\( \sqrt{r_b^2 + r_d^2} \)</></td><td>\( -arctan(θ_d) \)</td></tr>
+<tr><td>B'</td><td>\( r_a + r_d \)</td><td>\( θ_{d-i} - θ_d \)</></td></tr>
+<tr><td>C'</td><td>\( r_a + r_d \)</td><td>\( θ_r - θ_{d-i} + θ_d \)</></td></tr>
+<tr><td>D'</td><td>\( \sqrt{r_b^2 + r_d^2} \)</td><td>\( θ_r + arctan(θ_d) \)</></td></tr>
+<tr><td>E'</td><td>\( r_p - h_d \)</td><td>\( θ_r + arcsin(\frac{r_d}{r_p - h_d}) \)</></td></tr>
+<tr><td>F'</td><td>\( r_p - h_d \)</td><td>\( 2π/z - arcsin(\frac{r_d}{r_p - h_d}) \)</></td></tr>
+<tr><td>G'</td><td>\( \sqrt{r_b^2 + r_d^2} \)</td><td>\( 2π/z - arctan(θ_d) \)</></td></tr>
+</table>
+
+<table>
+<tr><th>Arc</th><th>\( r \)</th><th>\( θ \)</></th><th>\( t \)</th></tr>
+<tr><td>AB</td><td>\( r_b\sqrt{1 + t^2} \)</></td><td>\( t - arctan(t) \)</td><td>\( 0 \le t \le I_{max} \)</td></tr>
+<tr><td>BC</td><td>\( r_a \)</></td><td>\( θ_i \le θ \le θ_r - θ_i \)</td><td>\(  \)</td></tr>
+<tr><td>CD</td><td>\( r_b\sqrt{1 + t^2} \)</></td><td>\( θ_r - (t - arctan(t)) \)</td><td>\( 0 \le t \le I_{max} \)</td></tr>
+<tr><td>DE</td><td>\( r_p - h_d \le r \le r_b \)</></td><td>\( θ_r \)</td><td>\(  \)</td></tr>
+<tr><td>EF</td><td>\( r_p - h_d \)</></td><td>\( θ_r \le θ \le 2π/z \)</td><td>\(  \)</td></tr>
+<tr><td>FG</td><td>\( r_p - h_d \le r \le r_b \)</></td><td>\( 2π/z \)</td><td>\(  \)</td></tr>
+</table>
+
+<table>
+<tr><th>Arc</th><th>\( r \)</th><th>\( θ \)</></th><th>\( t \)</th></tr>
+<tr><td>A'B'</td><td>\( r_b\sqrt{1 + t^2} \)</></td><td>\( t - arctan(t) - θ_d \)</td><td>\( θ_d \le t \le I_{d-max} \)</td></tr>
+<tr><td>B'C'</td><td>\( r_a + r_d \)</></td><td>\( θ_{d-i} - θ_d \le θ \le θ_r - θ_{d-i} + θ_d \)</td><td>\(  \)</td></tr>
+<tr><td>C'D'</td><td>\( r_b\sqrt{1 + t^2} \)</></td><td>\( θ_r + θ_d - (t - arctan(t)) \)</td><td>\( θ_d \le t \le I_{d-max} \)</td></tr>
+<tr><td>D'E'</td><td>\( \sqrt{t^2 + r_d^2} \)</></td><td>\( θ_r + arctan(\frac{r_d}{t}) \)</td><td>\( \sqrt{(r_p - h_d)^2 - r_d^2} \le t \le r_b \)</td></tr>
+<tr><td>E'F'</td><td>\( r_p - h_d \)</></td><td>\( θ_r + arcsin(\frac{r_d}{r_p - h_d}) \le θ \le 2π/z - arcsin(\frac{r_d}{r_p - h_d}) \)</td><td>\(  \)</td></tr>
+<tr><td>F'G'</td><td>\( \sqrt{t^2 + r_d^2} \)</></td><td>\( 2π/z - arctan(\frac{r_d}{t}) \)</td><td>\( \sqrt{(r_p - h_d)^2 - r_d^2} \le t \le r_b \)</td></tr>
+</table>
+
+</body>
+
+</html>
