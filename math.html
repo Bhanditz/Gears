@@ -12,7 +12,12 @@ MathJax.Hub.Config({
 <!--
 <script type="text/javascript" src="./MathJax.js?config=TeX-AMS_HTML-full"></script>
 -->
+<!--
 <script type="text/javascript" src="./MathJax.js?config=TeX-MML-AM_SVG"></script>
+-->
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG">
+</script>
+
 </head>
 
 <body>
@@ -25,6 +30,9 @@ MathJax.Hub.Config({
 <tr><td>\( p \)</td><td>Circular pitch</td><td>\( p = πm \)</></td></tr>
 <tr><td>\( ψ \)</td><td>Pressure angle</td><td>\( 0 \le ψ < \frac{π}{2} \)</></td></tr>
 <tr><td>\( B \)</td><td>Backlash</td><td>\( 0 \le B \le \frac{p}{2} \)</></td></tr>
+<tr><td>\( d_s \)</td><td>Spline diameter</td><td>\( d_s > 0 \)</></td></tr>
+<tr><td>\( h_s \)</td><td>Spline depth</td><td>\( h_s > 0 \)</></td></tr>
+<tr><td>\( z_s \)</td><td>Spline count</td><td>\( z_s \ge 0, z_s \in \mathbb{N} \)</></td></tr>
 <tr><td>\( d_d \)</td><td>Drill diameter</td><td>\( d_d > 0 \)</></td></tr>
 <tr><td>Intermediates</td></tr>
 <tr><td>\( r_p \)</td><td>Pitch radius</td><td>\( r_p = \frac{zm}{2} \)</></td></tr>
@@ -40,6 +48,8 @@ MathJax.Hub.Config({
 <tr><td>\( I_{d-max} \)</td><td>" adjusted for drill</td><td>\( I_{d-max} = \sqrt{(\frac{r_a + r_d}{r_b})^2 - 1} \)</></td></tr>
 <tr><td>\( θ_i \)</td><td>Involute arc</td><td>\( θ_i = I_{max} - arctan(I_{max}) \)</></td></tr>
 <tr><td>\( θ_{d-i} \)</td><td>" adjusted for drill</td><td>\( θ_i = I_{d-max} - arctan(I_{d-max}) \)</></td></tr>
+<tr><td>\( A_s \)</td><td>Spline amplitude</td><td>\( A_s = \frac{h_s}{2} \)</></td></tr>
+<tr><td>\( r_x \)</td><td>Axel radius</td><td>\( r_a = \frac{d_s}{2} - A_s \)</></td></tr>
 </table>
 
 <table>
@@ -80,6 +90,51 @@ MathJax.Hub.Config({
 <tr><td>E'F'</td><td>\( r_p - h_d \)</></td><td>\( θ_r + arcsin(\frac{r_d}{r_p - h_d}) \le θ \le 2π/z - arcsin(\frac{r_d}{r_p - h_d}) \)</td><td>\(  \)</td></tr>
 <tr><td>F'G'</td><td>\( \sqrt{t^2 + r_d^2} \)</></td><td>\( 2π/z - arctan(\frac{r_d}{t}) \)</td><td>\( \sqrt{(r_p - h_d)^2 - r_d^2} \le t \le r_b \)</td></tr>
 </table>
+Spline curve:
+
+\[ r = r_x + A_s sin(z_s θ) \]
+
+In rectangular coordinates, this can be described by
+
+\[ x = r(t) \cdot cos(t) \]
+\[ y = r(t) \cdot sin(t) \]
+\[ r(t) = r_x + A_s sin(z_s t) \]
+\[ 0 \le t < 2π \]
+
+Let S be a vector function describing this curve
+
+\[ \vec{S}(t) = r(t) \langle cos(t), sin(t) \rangle \]
+
+To find the unit tangent vector, first take the derivative to find a tangent vector with magnitude
+
+\[ \vec{S}'(t) = r(t) \langle -sin(t), cos(t) \rangle + r'(t) \langle cos(t), sin(t) \rangle \]
+
+Since the two component vectors are perpendicular, the total magnitude is the pythagorean sum of the two components' magnitudes
+
+\[ ||\vec{S}'(t)||^2 = ||r(t) \langle -sin(t), cos(t) \rangle||^2 + ||r'(t) \langle cos(t), sin(t) \rangle||^2 \]
+\[ ||\vec{S}'(t)||^2 = r(t)^2 + r'(t)^2 \]
+\[ ||\vec{S}'(t)|| = \sqrt{r(t)^2 + r'(t)^2} \]
+
+Now the unit tangent vector T can be found
+
+\[ \vec{T}(t) = \frac{\vec{S}'(t)}{||\vec{S}'(t)||} \]
+\[ \vec{T}(t) = \frac{r(t) \langle -sin(t), cos(t) \rangle + r'(t) \langle cos(t), sin(t) \rangle}{||\vec{S}'(t)||} \]
+
+For a curve in 2D space, the unit normal vector can be found by rotating the tangent vector 90 degrees. Since the splice curve moves in an anticlockwise circle, and the desired equididistant is inside the circle, a positive or left rotation is used
+
+\[ \vec{N}(t) = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix} \cdot \vec{T}(t) = \langle -\vec{T}_y(t), \vec{T}_x(t) \rangle \]
+\[ \vec{N}(t) = \frac{r(t) \langle -cos(t), -sin(t) \rangle + r'(t) \langle -sin(t), cos(t) \rangle}{||\vec{S}'(t)||} \]
+\[ \vec{N}(t) = \frac{-\vec{S}(t) + r'(t) \langle -sin(t), cos(t) \rangle}{||\vec{S}'(t)||} \]
+
+The interior equididistant curve can be found by
+
+\[ \vec{E}(t) = \vec{S}(t) + r_d \vec{N}(t) \]
+\[ \vec{E}(t) = \vec{S}(t) + r_d \cdot \frac{-\vec{S}(t) + r'(t) \langle -sin(t), cos(t) \rangle}{||\vec{S}'(t)||} \]
+\[ \vec{E}(t) = \left(1 - \frac{r_d}{||\vec{S}'(t)||}\right) \vec{S}(t) + \frac{r_d r'(t)}{||\vec{S}'(t)||} \langle -sin(t), cos(t) \rangle \]
+
+
+
+
 
 </body>
 
