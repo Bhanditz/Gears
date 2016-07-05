@@ -126,15 +126,11 @@ For a curve in 2D space, the unit normal vector can be found by rotating the tan
 \[ \vec{N}(t) = \frac{r(t) \langle -cos(t), -sin(t) \rangle + r'(t) \langle -sin(t), cos(t) \rangle}{||\vec{S}'(t)||} \]
 \[ \vec{N}(t) = \frac{-\vec{S}(t) + r'(t) \langle -sin(t), cos(t) \rangle}{||\vec{S}'(t)||} \]
 
-The interior equididistant curve can be found by
+The interior equididistant curve can be found by adding the drill radius perpendicular to the original spline curve
 
 \[ \vec{E}(t) = \vec{S}(t) + r_d \vec{N}(t) \]
 \[ \vec{E}(t) = \vec{S}(t) + r_d \cdot \frac{-\vec{S}(t) + r'(t) \langle -sin(t), cos(t) \rangle}{||\vec{S}'(t)||} \]
 \[ \vec{E}(t) = \left(1 - \frac{r_d}{||\vec{S}'(t)||}\right) \vec{S}(t) + \frac{r_d r'(t)}{||\vec{S}'(t)||} \langle -sin(t), cos(t) \rangle \]
-
-
-
-
 
 </body>
 

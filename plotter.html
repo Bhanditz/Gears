@@ -2,15 +2,108 @@
 
 <head>
 <meta charset="utf-8">
+
+<style type="text/css">
+#gear_drawing {
+  width: 600px;
+  height: 600px;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+</style>
 </head>
 
 <body>
-<img id="dl" href-lang="image/svg+html">Download</img>
+<table id="inputs">
+  <tr><td>z            </td><td>- <label for="z" >Tooth count         </label></td><td><input id="z"  type="text" /></td></tr>
+  <tr><td>m            </td><td>- <label for="m" >Module (mm)         </label></td><td><input id="m"  type="text" /></td></tr>
+  <tr><td>Ψ            </td><td>- <label for="Ψ" >Pressure angle (rad)</label></td><td><input id="Ψ"  type="text" /></td></tr>
+  <tr><td>B            </td><td>- <label for="B" >Backlash (mm)       </label></td><td><input id="B"  type="text" /></td></tr>
+  <tr><td>d<sub>s</sub></td><td>- <label for="ds">Spline diameter (mm)</label></td><td><input id="ds" type="text" /></td></tr>
+  <tr><td>h<sub>s</sub></td><td>- <label for="hs">Spline depth (mm)   </label></td><td><input id="hs" type="text" /></td></tr>
+  <tr><td>z<sub>s</sub></td><td>- <label for="zs">Spline count        </label></td><td><input id="zs" type="text" /></td></tr>
+  <tr><td>d<sub>d</sub></td><td>- <label for="dd">Drill diameter (mm) </label></td><td><input id="dd" type="text" /></td></tr>
+</table>
+
+<input id="draw_gear" type="button" value="Draw Gear" />
+<input id="include_shaft" type="checkbox" checked="true" /><label for="shaft">Include shaft</label>
+
+<a id="gear_dl" download="gear.svg">Download gear</a>
+<a id="gear_drawing_dl" download="gear_drawing.svg">Download gear info</a>
+
+<figure>
+  <object id="gear_drawing" type="image/svg+xml">Info</object>
+  <figcaption>Legend: <b>drill path</b>, <font color="#F00">pitch circle</font>, <font color="#00F">base circle</font> for involutes, target <font color="#080">gear shape</font>. Note that the target gear shape will not be met exactly; in particular, the drill radius is used as a fillet in between teeth.</figcaption>
+</figure>
+
+<h3>Glossary</h3>
+
+<table>
+  <tr><td>z            </td><td class="nowrap">- Tooth count    </td><td>Number of teeth</td></tr>
+  <tr><td>m            </td><td class="nowrap">- Module         </td><td>Diameter of the pitch circle divided by the number of teeth.</td></tr>
+  <tr><td>Ψ            </td><td class="nowrap">- Pressure angle </td><td>Angle of the tooth face at the pitch circle. Measured using the tooth face normal relative to the pitch circle tangent.</td></tr>
+  <tr><td>B            </td><td class="nowrap">- Backlash       </td><td>Gap between teeth on two identical gears, measured at the pitch circle, if the two gears are spaced so that their pitch circles touch.</td></tr>
+  <tr><td>d<sub>s</sub></td><td class="nowrap">- Spline diameter</td><td>Outer diameter of shaft, including splines.</td></tr>
+  <tr><td>h<sub>s</sub></td><td class="nowrap">- Spline depth   </td><td>Full depth of splines, measured from peak to valley.</td></tr>
+  <tr><td>z<sub>s</sub></td><td class="nowrap">- Spline count   </td><td>Splines are the ridges used on some shafts to improve grip.</td></tr>
+  <tr><td>d<sub>d</sub></td><td class="nowrap">- Drill diameter </td><td>Diameter of drill (or laser) used for milling.</td></tr>
+</table>
 </body>
 
 <script type="text/javascript">
 
-var drawGear = function() {
+var generateAxel = function(options) {
+  var path = '';
+  var π = Math.PI;
+  
+  // @option Number ds -- Spline diameter (mm)
+  var ds = options.ds;
+  
+  // @option Number hs -- Spline depth (mm)
+  var hs = options.hs;
+  
+  // @option Number zs -- Spline count
+  var zs = options.zs;
+  
+  // @option Number dd -- Drill diameter (mm)
+  var dd = options.dd;
+  
+  with(Math) {
+    var coord = (r, θ) => (r*cos(θ)).toFixed(6) + ' ' + (r*sin(θ)).toFixed(6);
+    var lineTo = (r, θ) => path += 'L ' + coord(r, θ) + ' ';
+    
+    var rd = options.rd = dd/2; // Drill radius
+    var As = options.As = hs/2; // Spline amplitude
+    var rx = options.rx = ds/2 - As; // Axel radius
+    
+    path = 'M ' + (rx - rd) + ' 0 ';
+    
+    for(var i = 1; i < 500; ++i) {
+      var t = 2*π*i/500;
+      
+//       var r = rx + As*sin(zs*t);
+//       var r_prime = As*zs*cos(zs*t);
+//       var coeff = rd/sqrt(r*r + r_prime*r_prime);
+//       
+//       var x = (1 - coeff)*r*cos(t) - coeff*r_prime*sin(t);
+//       var y = (1 - coeff)*r*sin(t) + coeff*r_prime*cos(t);
+//       
+//       path += (i === 0 ? 'M' : 'L ') + x.toFixed(6) + ' ' + y.toFixed(6) + ' ';
+      
+      var r = rx + As*sin(zs*t) - rd;
+      
+      lineTo(r, t);
+    }
+    
+    path += 'Z';
+  }
+  
+  return path;
+}
+
+var generateTeeth = function(options) {
   var path = '';
   var π = Math.PI;
   
@@ -18,10 +111,10 @@ var drawGear = function() {
   var z = options.z;
   
   // @option Number m -- Module (mm)
-  var m = options.m || options.p/π;
+  var m = options.m = options.m || options.p/π;
   
   // @option Number p -- Circular pitch (mm)
-  var p = options.m*π || options.p;
+  var p = options.p = π*m;
   
   // @option Number Ψ -- Pressure angle (rad)
   var Ψ = options.Ψ;
@@ -30,94 +123,150 @@ var drawGear = function() {
   var B = options.B;
   
   // @option Number dd -- Drill diameter (mm)
-  var rd = options.dd/2;
+  var dd = options.dd;
   
   with(Math) {
-    var sec = x => 1/cos(x);
-    var asec = x => acos(1/x);
     var coord = (r, θ) => (r*cos(θ)).toFixed(6) + ' ' + (r*sin(θ)).toFixed(6);
-    var lineTo = (r, θ) => path += 'L' + coord(r, θ) + ' ';
+    var lineTo = (r, θ) => path += 'L ' + coord(r, θ) + ' ';
     
-    var rp = z*m/2; // Pitch radius
-    var rb = rp*cos(Ψ); // Base radius
-    var ha = 2*rp/z; // Addendum
-    var ra = rp + ha; // Addendum radius
+    var rp = options.rp = z*m/2; // Pitch radius
+    var rb = options.rb = rp*cos(Ψ); // Base radius
+    var ha = options.ha = m; // Addendum
+    var ra = options.ra = rp + ha; // Addendum radius
+    var hd = options.hd = max(ha, rp - rb); // Dedendum
+    var rd = options.rd = dd/2; // Drill radius
+    var θd = options.θd = rd/rb; // Drill arc
+    var θr = options.θr = π/z - B/(m*z) + 2*(tan(Ψ) - Ψ); // Root arc
+    var Imax = options.Imax = sqrt(pow(ra/rb, 2) - 1); // Involute parameter limit
+    var Id_max = options.Id_max = sqrt(pow((ra + rd)/rb, 2) - 1); // Imax adjusted for drill
+    var θi = options.θi = Imax - atan(Imax); // Involute arc
+    var θd_i = options.θd_i = Id_max - atan(Id_max); // θi adjusted for drill
     
-    var tmax = asec((ra + rd)/rb); // Max for involute parameter t
-    var θi = tan(tmax) - tmax; // Involute arc
-    var θr = π/z - B/(m*z) + 2*(tan(Ψ) - Ψ); // Root arc
-    var θd = rd/(2*π*rb); // Drill arc
-    
-    path += 'M' + coord(rb*sec(θd), tan(θd) - 2*θd) + ' ';
+    path += 'M ' + coord(sqrt(rb*rb + rd*rd), -atan(θd)) + ' ';
     
     for(var i = 0; i < z;) {
       // Involute going out
-      for(var j = 0, t = θd; j < 12; ++j, t += (tmax - θd)/11) {
-        lineTo(rb*sec(t), tan(t) - t + 2*π*i/z);
+      for(var j = 0, t = θd; j < 12; ++j, t += (Id_max - θd)/11) {
+        lineTo(rb*sqrt(1 + t*t), t - atan(t) - θd + 2*π*i/z);
       }
       
       // Top land
-      path += 'A ' + ra.toFixed(6) + ' ' + ra.toFixed(6) + ' ' + 0 + ' ' + 0 + ' ' + 1 + ' ' + coord(ra + rd, θr - θi + θd + 2*π*i/z) + ' ';
+      path += 'A ' + (ra + rd).toFixed(6) + ' ' + (ra + rd).toFixed(6) + ' ' + 0 + ' ' + 0 + ' ' + 1 + ' ' + coord(ra + rd, θr - θd_i + θd + 2*π*i/z) + ' ';
       
       // Involute coming in
-      for(var t = tmax; t >= θd; t -= (tmax - θd)/11) {
-        lineTo(rb*sec(t), θr + 2*θd - (tan(t) - t) + 2*π*i/z);
+      for(var t = Id_max; t >= θd; t -= (Id_max - θd)/11) {
+        lineTo(rb*sqrt(1 + t*t), θr + θd - (t - atan(t)) + 2*π*i/z);
       }
+      
+      // Fillet line in
+      lineTo(rp - hd, θr + asin(rd/(rp - hd)) + 2*π*i/z);
+      
+      // Bottom land
+      path += 'A ' + (rp-hd).toFixed(6) + ' ' + (rp - hd).toFixed(6) + ' ' + 0 + ' ' + 0 + ' ' + 1 + ' ' + coord(rp - hd, 2*π*1/z - asin(rd/(rp - hd)) + 2*π*i/z) + ' ';
       
       ++i;
       
-      // Bottom land
-      path += 'A ' + rb.toFixed(6) + ' ' + rb.toFixed(6) + ' ' + 0 + ' ' + 0 + ' ' + 1 + ' ' + coord(rb*sec(θd), tan(θd) - 2*θd + 2*π*i/z) + ' ';
+      // Fillet line out
+      lineTo(sqrt(rb*rb + rd*rd), -atan(θd) + 2*π*i/z);
     }
     
     path += 'Z';
   }
   
-  return '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n\
+  return path;
+}
+
+var drawGear = function(options) {
+  var dd = options.dd;
+  options.dd = 0;
+  var teethCut = generateTeeth(options);
+  var shaftCut = generateAxel(options);
+  options.dd = dd;
+  
+  var teeth = generateTeeth(options);
+  var shaft = generateAxel(options);
+  
+  var gear_width = options.m*(options.z + 2);
+  var image_width = 1.1*gear_width;
+  
+  var header = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n\
 \n\
 <svg\n\
   xmlns="http://www.w3.org/2000/svg"\n\
   xmlns:xlink="http://www.w3.org/1999/xlink"\n\
-  width="200mm"\n\
-  height="200mm"\n\
-  viewBox="-100 -100 200 200"\n\
+  width="' + image_width + 'mm"\n\
+  height="' + image_width + 'mm"\n\
+  viewBox="-' + image_width/2 + ' -' + image_width/2 + ' ' + image_width + ' ' + image_width + '"\n\
   version="1.1">\n\
   \n\
   <style type="text/css">\n\
     path, circle {\n\
       fill: none;\n\
-      stroke:#000;\n\
-      stroke-width:0.1px;\n\
+      stroke: #000;\n\
+      stroke-width: 0.1px;\n\
     }\n\
   </style>\n\
-  \n\
-  <g>\n\
-    <path\n\
-      d="M 1,1\n\
-         L -1,1\n\
-         L -1,-1\n\
-         L 1,-1\n\
-         Z" />\n\
-  </g>\n\
-  <g>\n\
-    <circle cx="0" cy="0" r="' + rp + '" />\n\
-  </g>\n\
-  <g>\n\
-    <path\n\
-      d="' + path + '" />\n\
-  </g>\n\
-</svg>\n';
+  \n';
+  
+  var gear_data = header +
+    '  <path d="' + teeth + '" />\n' +
+    (options.shaft ? '  <path d="' + shaft + '" />\n' : '') +
+    '</svg>\n';
+  
+  var gear_drawing_data = header +
+    '  <path d="' + teeth + '" />\n' +
+    (options.shaft ? '  <path d="' + shaft + '" />\n' : '') +
+    '  <path style="stroke:#080" d="' + teethCut + '" />\n' +
+    (options.shaft ? '  <path style="stroke:#080" d="' + shaftCut + '" />\n' : '') +
+    '  <circle style="stroke:#F00" cx="0" cy="0" r="' + options.rp + '" />\n' +
+    '  <circle style="stroke:#00F" cx="0" cy="0" r="' + options.rb + '" />\n' +
+    '</svg>\n';
+  
+  document.querySelector('#gear_dl').href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(gear_data);
+  document.querySelector('#gear_drawing_dl').href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(gear_drawing_data);
+  document.querySelector('#gear_drawing').data = document.querySelector('#gear_drawing_dl').href;
 }
 
 var options = {
   z: 24,
-  m: 4,
+  m: 1,
   Ψ: 20/180*Math.PI,
-  B: 0,
-  dd: 0
+  B: 0.3,
+  ds: 4.5,
+  hs: 0.2,
+  zs: 25,
+  dd: 0.7,
+  shaft: true
 }
 
-document.querySelector('#dl').src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(drawGear(options));
+for(var i in options) {
+  if(document.getElementById(i)) {
+    document.getElementById(i).value = options[i];
+  }
+}
+
+drawGear(options);
+
+document.querySelector('#draw_gear').addEventListener('click', function(e) {
+  ['z', 'm', 'Ψ', 'B', 'ds', 'hs', 'zs', 'dd'].forEach(function(v) {
+    options[v] = Math.max(parseFloat(document.getElementById(v).value) || 0, 0);
+    document.getElementById(v).value = options[v];
+  });
+  
+  options.shaft = Boolean(document.getElementById('include_shaft').checked);
+  
+  drawGear(options);
+});
+
+document.addEventListener('keyup', function(e) {
+  if(e.key === 'Enter' || e.keyCode === 13) {
+    if(e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) {
+      return;
+    }
+    
+    document.querySelector('#draw_gear').click();
+  }
+});
 
 </script>
 </html>
